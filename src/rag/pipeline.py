@@ -8,11 +8,13 @@ from __future__ import annotations
 from typing import Callable
 
 from src.core.interfaces import (
+    Answer,
     Chunker,
     Document,
     DocumentLoader,
     EmbeddingProvider,
     LLMProvider,
+    RetrievedChunk,
     VectorStore,
 )
 
@@ -58,3 +60,25 @@ class RAGPipeline:
         self._store.add(chunks, embeddings)
 
         return document
+
+    # ---- retrieval + generation ----
+
+    def answer(
+        self,
+        question: str,
+        document_ids: list[str] | None = None,
+        top_k: int = 4,
+    ) -> Answer:
+        """Soru → retrieve → LLM → Answer."""
+        query_vec = self._embedder.embed([question])[0]
+        retrieved = self._store.search(
+            query_embedding=query_vec,
+            top_k=top_k,
+            document_ids=document_ids,
+        )
+        generated_text = self._llm.generate(question, context=retrieved)
+        return Answer(
+            text=generated_text,
+            sources=retrieved,
+            model=self._llm.model_name,
+        )
