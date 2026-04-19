@@ -101,6 +101,10 @@ class FakeVectorStore:
             by_doc[doc_id]["chunk_count"] += 1
         return list(by_doc.values())
 
+    def get_document_chunks(self, document_id: str) -> list[Chunk]:
+        items = [i for i in self._items if i.chunk.document_id == document_id]
+        return sorted([i.chunk for i in items], key=lambda c: c.index)
+
 
 class FakeLLMProvider:
     """Fixed-response LLM. `answer_text` ile cevap şekillendirilebilir."""

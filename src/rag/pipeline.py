@@ -82,3 +82,24 @@ class RAGPipeline:
             sources=retrieved,
             model=self._llm.model_name,
         )
+
+    def summarize(self, document_id: str) -> Answer:
+        """Bir dokümanın tüm chunk'larını LLM'e vererek özet üret."""
+        from src.core.prompts import build_summarization_prompt
+
+        chunks = self._store.get_document_chunks(document_id)
+        if not chunks:
+            raise ValueError(f"Document not found or has no chunks: {document_id}")
+
+        retrieved = [RetrievedChunk(chunk=c, score=1.0) for c in chunks]
+        document_name = chunks[0].document_name
+        full_content = "\n\n".join(c.content for c in chunks)
+
+        prompt = build_summarization_prompt(document_name=document_name, content=full_content)
+
+        generated = self._llm.generate(prompt, context=retrieved)
+        return Answer(
+            text=generated,
+            sources=retrieved,
+            model=self._llm.model_name,
+        )

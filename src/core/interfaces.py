@@ -103,6 +103,10 @@ class VectorStore(Protocol):
         """Kayıtlı dokümanların bilgilerini döndür (id, name, chunk_count, vs)."""
         ...
 
+    def get_document_chunks(self, document_id: str) -> list[Chunk]:
+        """Bir dokümana ait tüm chunk'ları index sırasında döndür."""
+        ...
+
 
 @runtime_checkable
 class LLMProvider(Protocol):

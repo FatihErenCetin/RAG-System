@@ -98,3 +98,28 @@ class ChromaVectorStore:
                 }
             by_doc[doc_id]["chunk_count"] += 1
         return list(by_doc.values())
+
+    def get_document_chunks(self, document_id: str) -> list[Chunk]:
+        raw = self._collection.get(where={"document_id": document_id})
+
+        ids = raw.get("ids", []) or []
+        documents = raw.get("documents", []) or []
+        metadatas = raw.get("metadatas", []) or []
+
+        chunks: list[Chunk] = []
+        for _id, content, meta in zip(ids, documents, metadatas):
+            chunks.append(
+                Chunk(
+                    id=_id,
+                    document_id=meta["document_id"],
+                    document_name=meta["document_name"],
+                    content=content,
+                    index=int(meta.get("chunk_index", 0)),
+                    metadata={
+                        "char_start": int(meta.get("char_start", 0)),
+                        "char_end": int(meta.get("char_end", 0)),
+                    },
+                )
+            )
+        chunks.sort(key=lambda c: c.index)
+        return chunks
