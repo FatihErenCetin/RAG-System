@@ -1,0 +1,41 @@
+"""Streamlit entry point: 'Chat With Your Documents'."""
+from __future__ import annotations
+
+import os
+
+import streamlit as st
+
+from frontend.api_client import APIClient, APIClientError
+from frontend.components import render_chat, render_documents, render_upload
+
+
+def main() -> None:
+    st.set_page_config(page_title="Chat With Your Docs", page_icon="💬", layout="wide")
+    st.title("💬 Chat With Your Documents")
+    st.caption("Dokümanlarınızı yükleyin, onlara soru sorun.")
+
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    client = APIClient(base_url=backend_url)
+
+    # Health check
+    try:
+        client.health()
+    except APIClientError:
+        st.error(
+            f"⚠️ Backend'e ulaşılamıyor: {backend_url}\n\n"
+            "`uvicorn backend.main:app --reload` ile backend'i başlattığınızdan emin olun."
+        )
+        st.stop()
+
+    # Layout: Sol kolonda upload + docs, sağda chat
+    left, right = st.columns([1, 2], gap="large")
+    with left:
+        render_upload(client)
+        st.divider()
+        docs = render_documents(client)
+    with right:
+        render_chat(client, docs)
+
+
+if __name__ == "__main__":
+    main()
