@@ -2,11 +2,19 @@
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
 
-import streamlit as st
+# `streamlit run frontend/app.py` proje kökünü sys.path'e eklemez;
+# import'lar çalışsın diye elle ekliyoruz.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
-from frontend.api_client import APIClient, APIClientError
-from frontend.components import render_chat, render_documents, render_upload
+import streamlit as st  # noqa: E402
+
+from frontend.api_client import APIClient, APIClientError  # noqa: E402
+from frontend.components import render_chat, render_documents, render_upload  # noqa: E402
 
 
 def main() -> None:
