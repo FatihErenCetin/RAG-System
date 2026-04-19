@@ -7,10 +7,7 @@ from fastapi import Depends
 
 from backend.config import Settings, get_settings
 from src.adapters.chunkers.recursive import RecursiveChunker
-from src.adapters.embeddings.gemini import GeminiEmbedding
-from src.adapters.llm.gemini import GeminiLLM
 from src.adapters.loaders import get_loader as loader_factory_fn
-from src.adapters.vectorstores.chroma import ChromaVectorStore
 from src.rag.pipeline import RAGPipeline
 
 
@@ -22,15 +19,36 @@ def _build_pipeline(settings_hash: str) -> RAGPipeline:
         chunk_size=settings.chunk_size,
         chunk_overlap=settings.chunk_overlap,
     )
-    embedder = GeminiEmbedding(
-        api_key=settings.gemini_api_key,
-        model=settings.gemini_embedding_model,
-    )
-    store = ChromaVectorStore(path=settings.chroma_path)
-    llm = GeminiLLM(
-        api_key=settings.gemini_api_key,
-        model=settings.gemini_llm_model,
-    )
+
+    if settings.use_mock_providers:
+        # Demo mode — API key gerektirmez, in-memory store
+        from src.adapters.demo import DemoEmbedding, DemoLLM, DemoVectorStore
+
+        embedder = DemoEmbedding()
+        store = DemoVectorStore()
+        llm = DemoLLM()
+    else:
+        # Production mode — gerçek Gemini + Chroma
+        from src.adapters.embeddings.gemini import GeminiEmbedding
+        from src.adapters.llm.gemini import GeminiLLM
+        from src.adapters.vectorstores.chroma import ChromaVectorStore
+
+        if not settings.gemini_api_key:
+            raise RuntimeError(
+                "GEMINI_API_KEY eksik. .env dosyasına ekleyin veya "
+                "USE_MOCK_PROVIDERS=true yaparak demo moduna geçin."
+            )
+
+        embedder = GeminiEmbedding(
+            api_key=settings.gemini_api_key,
+            model=settings.gemini_embedding_model,
+        )
+        store = ChromaVectorStore(path=settings.chroma_path)
+        llm = GeminiLLM(
+            api_key=settings.gemini_api_key,
+            model=settings.gemini_llm_model,
+        )
+
     return RAGPipeline(
         loader_factory=loader_factory_fn,
         chunker=chunker,
@@ -42,4 +60,9 @@ def _build_pipeline(settings_hash: str) -> RAGPipeline:
 
 def get_pipeline(settings: Settings = Depends(get_settings)) -> RAGPipeline:
     """Endpoint'lere RAGPipeline inject et."""
-    return _build_pipeline(settings.chroma_path + ":" + settings.gemini_llm_model)
+    cache_key = (
+        f"{settings.use_mock_providers}:"
+        f"{settings.chroma_path}:"
+        f"{settings.gemini_llm_model}"
+    )
+    return _build_pipeline(cache_key)

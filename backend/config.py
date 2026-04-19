@@ -15,9 +15,15 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # Demo mode — API key gerektirmeden UI'ı test etmek için
+    use_mock_providers: bool = False
+
     # LLM
     llm_provider: str = "gemini"
-    gemini_api_key: str = Field(..., description="Google AI Studio'dan alınan API key")
+    gemini_api_key: str = Field(
+        default="",
+        description="Google AI Studio'dan alınan API key. use_mock_providers=true ise boş bırakılabilir.",
+    )
     gemini_llm_model: str = "gemini-2.5-flash"
 
     # Embedding

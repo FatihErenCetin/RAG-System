@@ -37,6 +37,29 @@ RAG Systems/
 - **backend/:** FastAPI app with DI; imports only from `src.core` types.
 - **frontend/:** Streamlit UI; talks to backend via `APIClient`.
 
+## 🚀 Hızlı Demo (API Key'siz)
+
+Gemini API key'iniz olmadan uygulamayı denemek ister misiniz? Demo modu fake providers kullanır — gerçek bir LLM çağırmaz ama tüm UI, yükleme, retrieval ve özet akışını görebilirsiniz.
+
+```bash
+# Kurulumdan sonra:
+echo "USE_MOCK_PROVIDERS=true" > .env
+
+# Terminal 1:
+source .venv/bin/activate && uvicorn backend.main:app --reload
+
+# Terminal 2:
+source .venv/bin/activate && streamlit run frontend/app.py
+```
+
+Demo modunda:
+- Dokümanlar in-memory tutulur (backend restart'ta silinir)
+- Embedding SHA-256 tabanlı deterministic vektör üretir
+- LLM "cevabı" retrieval sonuçlarını template ile özetler
+- Upload/query/summarize/delete'in hepsi çalışır
+
+Gerçek LLM cevapları için `.env`'de `USE_MOCK_PROVIDERS=false` ve `GEMINI_API_KEY=<sizin_key>` ayarlayın.
+
 ## Kurulum
 
 ### Gereksinimler

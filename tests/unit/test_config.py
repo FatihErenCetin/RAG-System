@@ -27,3 +27,18 @@ def test_cors_origins_parsed_as_list(monkeypatch):
     monkeypatch.setenv("CORS_ORIGINS", "http://localhost:8501,http://localhost:3000")
     settings = Settings()
     assert settings.cors_origins == ["http://localhost:8501", "http://localhost:3000"]
+
+
+def test_gemini_api_key_optional_when_mock_mode(monkeypatch):
+    """Demo modu: API key olmadan config geçerli."""
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("USE_MOCK_PROVIDERS", "true")
+    settings = Settings()
+    assert settings.use_mock_providers is True
+    assert settings.gemini_api_key == ""
+
+
+def test_use_mock_providers_defaults_false(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "k")
+    settings = Settings()
+    assert settings.use_mock_providers is False
