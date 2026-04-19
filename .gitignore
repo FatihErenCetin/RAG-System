@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Venv
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Env & data
+.env
+data/
+chroma_db/
+
+# Test artifacts
+.coverage
+htmlcov/
