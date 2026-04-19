@@ -70,3 +70,15 @@ def test_upload_no_files_returns_422():
     client, _ = _client_with_fake_pipeline()
     response = client.post("/upload")
     assert response.status_code == 422
+
+
+def test_upload_size_limit(monkeypatch):
+    """MAX_UPLOAD_MB aşıldığında 413 dön."""
+    monkeypatch.setenv("MAX_UPLOAD_MB", "1")
+    from backend.dependencies import _build_pipeline
+    _build_pipeline.cache_clear()
+
+    client, _ = _client_with_fake_pipeline()
+    big_content = b"x" * (2 * 1024 * 1024)  # 2MB
+    response = client.post("/upload", files=[("files", ("big.txt", big_content, "text/plain"))])
+    assert response.status_code == 413
