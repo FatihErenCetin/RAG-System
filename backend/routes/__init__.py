@@ -1,4 +1,4 @@
 """Routers."""
-from . import documents, health
+from . import documents, health, query
 
-__all__ = ["documents", "health"]
+__all__ = ["documents", "health", "query"]
