@@ -1,0 +1,5 @@
+Bu bir test dosyasıdır.
+
+İkinci paragraf Türkçe karakterler içerir: ğüşiöçİĞÜŞÖÇ.
+
+Üçüncü paragraf İngilizce: The quick brown fox.
