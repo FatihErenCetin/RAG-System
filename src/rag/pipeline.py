@@ -103,3 +103,13 @@ class RAGPipeline:
             sources=retrieved,
             model=self._llm.model_name,
         )
+
+    # ---- document management ----
+
+    def list_documents(self) -> list[dict]:
+        """Kayıtlı dokümanları özet bilgileriyle döndür."""
+        return self._store.list_documents()
+
+    def delete_document(self, document_id: str) -> None:
+        """Dokümanı ve tüm chunk'larını sil."""
+        self._store.delete_document(document_id)

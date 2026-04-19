@@ -5,7 +5,9 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from backend.dependencies import get_pipeline
 from backend.schemas import (
+    DeleteResponse,
     DocumentInfo,
+    DocumentListResponse,
     UploadResponse,
     UploadResult,
 )
@@ -48,8 +50,8 @@ async def upload_files(
                 detail=f"{upload.filename}: {e}",
             ) from e
 
-        # chunk sayısını store'dan al (Task 19'da list_documents pass-through eklenecek)
-        docs = pipeline._store.list_documents()  # noqa: SLF001
+        # chunk sayısını store'dan al
+        docs = pipeline.list_documents()
         chunk_count = next(
             (d["chunk_count"] for d in docs if d["id"] == doc.id), 0
         )
@@ -64,3 +66,22 @@ async def upload_files(
         )
 
     return UploadResponse(results=results, total_chunks=total_chunks)
+
+
+@router.get("/documents", response_model=DocumentListResponse)
+def list_documents(
+    pipeline: RAGPipeline = Depends(get_pipeline),
+) -> DocumentListResponse:
+    raw = pipeline.list_documents()
+    return DocumentListResponse(
+        documents=[DocumentInfo(**d) for d in raw]
+    )
+
+
+@router.delete("/documents/{document_id}", response_model=DeleteResponse)
+def delete_document(
+    document_id: str,
+    pipeline: RAGPipeline = Depends(get_pipeline),
+) -> DeleteResponse:
+    pipeline.delete_document(document_id)
+    return DeleteResponse(deleted_document_id=document_id)
