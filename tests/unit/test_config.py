@@ -33,7 +33,8 @@ def test_gemini_api_key_optional_when_mock_mode(monkeypatch):
     """Demo modu: API key olmadan config geçerli."""
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.setenv("USE_MOCK_PROVIDERS", "true")
-    settings = Settings()
+    # .env dosyası mevcut sistemi kirletmesin
+    settings = Settings(_env_file=None)
     assert settings.use_mock_providers is True
     assert settings.gemini_api_key == ""
 

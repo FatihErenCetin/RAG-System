@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     # Embedding
     embedding_provider: str = "gemini"
-    gemini_embedding_model: str = "text-embedding-004"
+    gemini_embedding_model: str = "gemini-embedding-001"
 
     # Vector store
     vector_store: str = "chroma"
