@@ -26,3 +26,6 @@ chroma_db/
 # Test artifacts
 .coverage
 htmlcov/
+
+# superpowers workflow artifacts (local only)
+docs/superpowers/
