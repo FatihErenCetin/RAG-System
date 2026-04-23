@@ -14,6 +14,53 @@ Bu repo **RAG (Retrieval-Augmented Generation)** mantığını uygulayan bir cha
 - 🎯 Kaynak gösterme (cevabın hangi chunk'tan geldiği)
 - 🎛️ Seçili dokümanlar üzerinde sorgulama
 - 🚦 Cross-lingual retrieval (Türkçe ↔ İngilizce)
+- 🔢 **Top-K Slider** — Chat arayüzünden kaç kaynak getirileceği (1–10) ayarlanabilir
+- 🔤 **Akıllı PDF Karakter Düzeltici** — Bazı PDF'lerde `P R O J E` şeklinde boşlukla yazılan karakterleri otomatik olarak `PROJE` haline getirir; embedding kalitesini artırır
+
+## Yeni Özellikler
+
+### 🔢 Top-K Retrieval Slider
+
+**Dosya:** `frontend/components/chat.py`
+
+Chat arayüzüne 1–10 arasında ayarlanabilir bir slider eklendi. "Top-K", soruyu yanıtlamak için dokümanlardan kaç metin parçasının (chunk) getirileceğini belirler.
+
+| Değer | Ne zaman kullanmalı? |
+|---|---|
+| **1–2** | Tek ve net bir bilgi arıyorsanız — *"Şirketin kuruluş yılı nedir?"* Hızlı ve odaklı. |
+| **3–5** *(varsayılan)* | Çoğu soru için ideal denge. Birden fazla bölümden bilgi derlenmesi gereken sorularda iyi çalışır. |
+| **6–10** | Geniş kapsamlı sorular için — *"Bu rapordaki tüm riskler neler?"* Daha fazla bağlam, daha kapsamlı cevap. |
+
+Slider değeri her sorguda canlı olarak backend'e iletilir; aynı soru farklı Top-K değerleriyle test edilerek retrieval kalitesi gözlemlenebilir.
+
+---
+
+### 🔤 Akıllı PDF Karakter Düzeltici
+
+**Dosya:** `src/adapters/loaders/pdf_loader.py`
+
+Bazı PDF'ler (özellikle belirli fontlarla veya tarama sonrası OCR ile oluşturulmuş dosyalar) pypdf tarafından ayrı ayrı boşluklu harfler olarak çıkarılır:
+
+```
+P R O J E L E R   V E   Y A Z I L I M
+```
+
+Bu durum embedding kalitesini ciddi ölçüde düşürür; model tek tek harfleri anlamsız token olarak işler.
+
+**Düzeltici mantığı (`_fix_spaced_chars`):**
+1. Metni satır satır tarar.
+2. Bir satırdaki token'ların **%60'ından fazlası** tek-harfli alfabetik ise satır "bozuk" olarak işaretlenir (en az 6 token şartı ile kısa satırlarda false positive önlenir).
+3. Ardışık tek-harf token'ları birleştirilerek okunabilir kelimeler elde edilir.
+4. Noktalama işaretleri (`–`, `.`, `,` vb.) ayrı kalır; birleştirilmez.
+5. Türkçe karakterler (`İ`, `Ş`, `Ğ`, `Ü`, `Ö`, `Ç`, `ı`, `ş`, `ğ`, `ü`, `ö`, `ç`) Python'un `str.isalpha()` ile doğal olarak desteklenir.
+
+**Sonuç:**
+```
+PROJELER VE YAZILIM GELİŞTİRMEDENEYİMİ
+```
+Retrieval skorları ve cevap kalitesi belirgin biçimde artar.
+
+---
 
 ## Mimari
 
@@ -147,7 +194,7 @@ Detaylı şemalar için: `http://localhost:8000/docs`
 
 ## Yol Haritası
 
-- **v0.1 (MVP — bu sürüm):** LangChain (loaders + splitter) + saf SDK (Gemini LLM + embedding + Chroma) karma yapı
+- **v0.1 (MVP — bu sürüm):** LangChain (loaders + splitter) + saf SDK (Gemini LLM + embedding + Chroma) karma yapı; Top-K slider, akıllı PDF karakter düzeltici
 - **v0.2 (planned):** Saf SDK refactor (LangChain kaldırıldı), kapsamlı test suite, CI (GitHub Actions), mimari diyagram
 - **v0.3 (planned):** Docker + docker-compose, JWT authentication, streaming response (SSE), HTML/JS frontend (Streamlit yerine), Railway/Fly.io deployment, opsiyonel HuggingFace + Groq provider'ları
 

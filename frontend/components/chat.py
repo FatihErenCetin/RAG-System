@@ -21,6 +21,23 @@ def render_chat(client: APIClient, docs: list[dict]) -> None:
         )
         selected_ids = selected_names or None
 
+    top_k = st.slider(
+        "Kaç kaynak getirilsin? (Top-K)",
+        min_value=1,
+        max_value=10,
+        value=4,
+        step=1,
+    )
+    st.caption(
+        f"**Top-K = {top_k}** — Sorunuzu yanıtlamak için dokümanlardan en alakalı **{top_k} metin parçası** (chunk) getirilir ve AI'ya bağlam olarak verilir.\n\n"
+        "**1–2:** Tek bir net bilgi arıyorsanız — örneğin *'Şirketin kuruluş yılı nedir?'* "
+        "Az kaynak → daha hızlı, daha odaklı cevap.\n\n"
+        "**3–5 (önerilen):** Çoğu soru için ideal denge. "
+        "Birden fazla bölümden bilgi derlenmesi gereken sorularda iyi çalışır.\n\n"
+        "**6–10:** Uzun bir dokümanı geniş kapsamlı sorguladığınızda — örneğin *'Bu rapordaki tüm riskler neler?'* "
+        "Daha fazla bağlam → daha kapsamlı cevap, ama alakasız parçalar da girebilir."
+    )
+
     # Session history
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
@@ -49,7 +66,7 @@ def render_chat(client: APIClient, docs: list[dict]) -> None:
                     result = client.query(
                         question=prompt,
                         document_ids=selected_ids,
-                        top_k=4,
+                        top_k=top_k,
                     )
                 except APIClientError as e:
                     st.error(f"Soru başarısız: {e}")
